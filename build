@@ -1,0 +1,74 @@
+#!/bin/sh
+
+cur_path="`pwd`"
+prj_path="`dirname $cur_path`"
+prj_name="`basename $cur_path`"
+src="$prj_path/$prj_name"
+dst="$prj_path/$prj_name.build"
+findir="result"
+dbuser="aclor_root"
+dbpass="4c10r8888"
+dbname="aclor_website"
+dbtable=""
+dbbackup="aclor_website.sql"
+dbciunit="aclor_ciunit.sql"
+
+# Copy from production code
+rm -rf $src/$findir
+cp -afR $src $dst
+
+# Remomve redundancy
+rm -fr $dst/upload/*
+rm -f  $dst/build
+rm -f  $dst/$findir.zip
+rm -f  $src/$findir.zip
+rm -f  $dst/shortcut
+rm -f  $dst/screw
+rm -f  $dst/appliaction/logs/*.php
+mv $dst/application/config/config.fin.php  $dst/application/config/config.php
+sed -i s/"define('ENVIRONMENT', 'development');"/"define('ENVIRONMENT', 'production');"/g $dst/index.php
+
+# For backup database
+#mysqldump -u $dbuser -p$dbpass --all-databases   > $dst/$dbbackup # backup for all
+#mysqldump -u $dbuser -p$dbpass $dbname           > $dst/$dbbackup
+#mysqldump -u $dbuser -p$dbpass $dbname           > $dst/$dbciunit
+mysqldump  -u $dbuser -p$dbpass $dbname --no-data > $dst/$dbbackup
+mysqldump  -u $dbuser -p$dbpass $dbname --no-data > $dst/$dbciunit
+#mysqldump -u $dbuser -p$dbpass $dbname $dbtable  > $dst/$dbbackup
+#mysqldump -u $dbuser -p$dbpass $dbname $dbtable  > $dst/$dbciunit
+
+# For database resotre
+#mysql -u $dbuser -p$dbpass < $dbbackup
+#mysql -u $dbuser -p$dbpass < $dbciunit
+
+# php files protect
+if [ "$1" = "screw" ]; then
+    find $dst/application/views/       -name "*.php" -exec $src/screw {} \;
+    find $dst/application/controllers/ -name "*.php" -exec $src/screw {} \;
+    find $dst/application/models/      -name "*.php" -exec $src/screw {} \;
+    find $dst/tests/controllers        -name "*.php" -exec $src/screw {} \;
+    find $dst/tests/helpers            -name "*.php" -exec $src/screw {} \;
+    find $dst/tests/models             -name "*.php" -exec $src/screw {} \;
+    find $dst/tests/system             -name "*.php" -exec $src/screw {} \;
+    find $dst/tests/libs               -name "*.php" -exec $src/screw {} \;
+    find $dst/application              -name "*.screw" -delete
+    find $dst/tests                    -name "*.screw" -delete
+else
+    for f in `find $dst/application/views       -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/application/controllers -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/application/models      -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/tests/models            -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/tests/system            -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/tests/libs              -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/tests/controllers       -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+    for f in `find $dst/tests/helpers           -name '*.php'` ; do php -w $f > $f.zipped ; mv $f.zipped $f ; done
+fi
+
+# javascript files compress
+f=$dst/script/products.js ; minijs $f ; mv $f.mini $f
+f=$dst/script/script.js ; minijs $f ; mv $f.mini $f
+
+
+mv $dst $src/$findir
+zip -r $findir.zip $findir > /dev/null 2>&1
+echo "done !! "

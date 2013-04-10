@@ -1,0 +1,18 @@
+<public:component>
+<script>
+var trans_pixel = "/links/images/spacer.gif";
+
+var msie5_or_6 = navigator.userAgent.indexOf("MSIE 5.5") != -1
+                 || navigator.userAgent.indexOf("MSIE 6.0") != -1;
+
+if (msie5_or_6) {
+  if (element.src.toLowerCase().substr(element.src.length-4) == ".png") {
+    var oldSrc  = element.src;
+    element.src = trans_pixel;
+    element.runtimeStyle.filter
+      = "progid:DXImageTransform.Microsoft.AlphaImageLoader(src='" +
+          oldSrc + "',sizingMethod='scale')";
+  }
+}
+</script>
+</public:component>

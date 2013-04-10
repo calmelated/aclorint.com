@@ -1,0 +1,11 @@
+#!/bin
+
+prj='aclorint.com'
+
+alias tocon="cd $HOME/$prj/application/controllers/"
+alias toview="cd $HOME/$prj/application/views/"
+alias tocfg="cd $HOME/$prj/application/config/"
+alias tomode="cd $HOME/$prj/application/models/"
+alias tolog="cd $HOME/$prj/application/logs"
+alias totest="cd $HOME/$prj/tests"
+alias to="cd $HOME/$prj"
